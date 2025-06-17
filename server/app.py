@@ -1,27 +1,37 @@
-#!/usr/bin/env python3
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
-from flask import Flask, jsonify, request, make_response
-from flask_migrate import Migrate
-from flask_restful import Api, Resource
-
-from models import db, Plant
-
+# Instantiate app and db at top-level
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///plants.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'  # or your database URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.json.compact = True
 
-migrate = Migrate(app, db)
+db = SQLAlchemy()
 db.init_app(app)
 
-api = Api(app)
+# Import your models here AFTER db is initialized
+from models import Plant
 
-class Plants(Resource):
-    pass
+# Set up routes here
+@app.route('/plants')
+def get_plants():
+    plants = Plant.query.all()
+    return [plant.to_dict() for plant in plants]  # Use your own to_dict method
 
-class PlantByID(Resource):
-    pass
-        
+@app.route('/plants/<int:id>')
+def get_plant_by_id(id):
+    plant = Plant.query.get_or_404(id)
+    return plant.to_dict()
 
-if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+@app.route('/plants', methods=['POST'])
+def create_plant():
+    from flask import request
+    data = request.get_json()
+    plant = Plant(
+        name=data['name'],
+        image=data.get('image'),
+        price=data.get('price'),
+    )
+    db.session.add(plant)
+    db.session.commit()
+    return plant.to_dict(), 201

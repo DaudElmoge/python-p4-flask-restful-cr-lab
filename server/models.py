@@ -1,12 +1,17 @@
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy_serializer import SerializerMixin
+from app import db
 
-db = SQLAlchemy()
-
-class Plant(db.Model, SerializerMixin):
+class Plant(db.Model):
     __tablename__ = 'plants'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     image = db.Column(db.String)
-    price = db.Column(db.Numeric(10, 2))  # up to 99999999.99
+    price = db.Column(db.Float)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "image": self.image,
+            "price": self.price
+        }
