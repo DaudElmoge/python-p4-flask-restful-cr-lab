@@ -1,17 +1,15 @@
-from app import db
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy_serializer import SerializerMixin
 
-class Plant(db.Model):
+db = SQLAlchemy()
+
+class Plant(db.Model, SerializerMixin):
     __tablename__ = 'plants'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    image = db.Column(db.String)
-    price = db.Column(db.Float)
+    image = db.Column(db.String, nullable=False)
+    price = db.Column(db.Numeric(5, 2), nullable=False)
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "image": self.image,
-            "price": self.price
-        }
+    # Configure serialization rules (optional, if using to_dict())
+    serialize_rules = ('-some_relationship',)  # if no relationships, you can remove this line
